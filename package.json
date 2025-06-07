@@ -16,6 +16,7 @@
     "better-sqlite3": "^11.9.1",
     "dotenv": "^16.5.0",
     "pg": "^8.14.1",
+    "pinia": "^3.0.3",
     "vue": "^3.5.13",
     "vue-router": "^4.5.1"
   },
@@ -44,11 +45,17 @@
     ],
     "extraResources": [],
     "linux": {
-      "target": ["AppImage", "snap"],
+      "target": [
+        "AppImage",
+        "snap"
+      ],
       "category": "Utility"
     },
     "win": {
-      "target": ["nsis", "zip"]
+      "target": [
+        "nsis",
+        "zip"
+      ]
     }
   }
 }
