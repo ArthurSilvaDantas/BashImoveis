@@ -18,7 +18,7 @@
       <ul class="nav-list" v-if="isAdmin">
         <li><a href="/">Início</a></li>
         <li><a href="/negotiate">Negociações</a></li>
-        <li><a href="/real-estate">Imóveis</a></li>
+        <li><a href="/list-properties">Imóveis</a></li>
         <li><a href="/list-real-state-agent">Corretores</a></li>
         <li v-if="!isLoggedIn"><a href="/login">Entrar</a></li>
         <li v-else>
@@ -29,7 +29,7 @@
       <ul class="nav-list" v-else-if="isRealStateAgent">
         <li><a href="/">Início</a></li>
         <li><a href="/negotiate">Negociações</a></li>
-        <li><a href="/real-estate">Imóveis</a></li>
+        <li><a href="/list-properties">Imóveis</a></li>
         <li v-if="!isLoggedIn"><a href="/login">Entrar</a></li>
         <li v-else>
           <button @click="logout" class="logout-button">Deslogar</button>
