@@ -37,6 +37,42 @@ db.prepare(`
   );
 `).run();
 
+db.prepare(`
+  CREATE TABLE IF NOT EXISTS imovel (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    titulo VARCHAR(255) NOT NULL,
+    descricao TEXT,
+    endereco TEXT NOT NULL,
+    cidade TEXT NOT NULL,
+    bairro TEXT NOT NULL,
+    estado TEXT NOT NULL,
+    cep VARCHAR(10),
+    preco DECIMAL(15, 2) NOT NULL,
+    tipo TEXT CHECK (tipo IN ('CASA', 'APARTAMENTO', 'TERRENO', 'COMERCIAL')) NOT NULL,
+    status TEXT CHECK (status IN ('DISPONIVEL', 'VENDIDO', 'ALUGADO')) DEFAULT 'DISPONIVEL',
+    area_m2 REAL,
+    quartos INTEGER,
+    banheiros INTEGER,
+    vagas_garagem INTEGER,
+    corretor_id INTEGER,
+    criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
+    atualizado_em DATETIME,
+    FOREIGN KEY (corretor_id) REFERENCES corretor(usuario_id) ON DELETE SET NULL
+  );
+`).run();
+
+db.prepare(`
+  CREATE TABLE IF NOT EXISTS imovel_imagem (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    imovel_id INTEGER NOT NULL,
+    image_base64 TEXT NOT NULL,
+    legenda TEXT,
+    ordem INTEGER,
+    criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (imovel_id) REFERENCES imovel(id) ON DELETE CASCADE
+  );
+`).run();
+
 let client = null;
 let connected = false;
 
