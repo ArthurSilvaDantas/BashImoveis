@@ -6,15 +6,19 @@
           type="text"
           v-model="searchQuery"
           placeholder="Buscar corretor..."
-          class="filtro-input"
+          class="filter-input"
           @keyup.enter="searchCorretor"
           aria-label="Buscar corretor"
         />
-        <button class="search-button" @click="searchCorretor" aria-label="Buscar">🔍</button>
-        <button class="search-button" @click="resetCorretor" aria-label="Limpar busca">❌</button>
+        <button class="action-button search-button" @click="searchCorretor" aria-label="Buscar">
+          <span class="icon">🔍</span> Buscar
+        </button>
+        <button class="action-button reset-button" @click="resetCorretor" aria-label="Limpar busca">
+          <span class="icon">❌</span> Limpar
+        </button>
       </div>
-      <button class="cadastrar-button" @click="openModal" aria-label="Cadastrar Corretor">
-        <span class="button-icon">+</span> Cadastrar Corretor
+      <button class="action-button register-button" @click="openModal" aria-label="Cadastrar Corretor">
+        <span class="icon">+</span> Cadastrar Corretor
       </button>
     </header>
   
@@ -70,7 +74,7 @@
   
 <script>
 import { useToast } from 'vue-toastification';
-import EditRealStantAgent from './EditUsers/EditRealStantAgent.vue';
+import EditRealStantAgent from '../Edit/EditRealStantAgent.vue';
   
 export default {
   components: { EditRealStantAgent },
@@ -169,6 +173,6 @@ export default {
 </script>
   
 <style scoped>
-@import '../styles/ListRealStateAgent.css'
+@import '../../styles/ListRealStateAgent.css';
 </style>
   
