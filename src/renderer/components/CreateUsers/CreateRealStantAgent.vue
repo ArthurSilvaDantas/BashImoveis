@@ -1,8 +1,8 @@
 <template>
-    <div class="register-container">
+    <div>
         <div class="register-card">
             <h2 class="register-title">
-                Cadastrar-se
+                Cadastrar Corretor
             </h2>
 
             <form @submit.prevent="register" class="register-form">
@@ -114,12 +114,12 @@ export default {
             try {
                 const emailExists = await window.api.checkEmailExists(this.email);
                 if (emailExists) {
-                    this.error = 'Usuário já cadastrado.';
+                    this.error = 'corretor já cadastrado.';
                     toast.error(this.error);
                     return;
                 }
 
-                const resultado = await window.api.createRealState({
+                const resultado = await window.api.createRealEstateAgent({
                     creci: this.creci,
                     name: this.name,
                     email: this.email,
@@ -131,7 +131,7 @@ export default {
                 });
     
                 if (resultado) {
-                    toast.success('Usuário cadastrado com sucesso!');
+                    toast.success('Corretor cadastrado com sucesso!');
                     this.name = '';
                     this.creci = '';
                     this.email = '';
@@ -142,7 +142,7 @@ export default {
                     this.error = '';
                     this.$router.push('/login');
                 } else {
-                    this.error = resultado.message || 'Erro ao cadastrar usuário.';
+                    this.error = resultado.message || 'Erro ao cadastrar corretor.';
                     toast.error(this.error);
                 }
             } catch (err) {

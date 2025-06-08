@@ -19,7 +19,6 @@
         <li><a href="/">Início</a></li>
         <li><a href="/negotiate">Negociações</a></li>
         <li><a href="/real-estate">Imóveis</a></li>
-        <li><a href="/crm">CRM</a></li>
         <li><a href="/list-real-state-agent">Corretores</a></li>
         <li v-if="!isLoggedIn"><a href="/login">Entrar</a></li>
         <li v-else>

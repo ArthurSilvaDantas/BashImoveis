@@ -51,7 +51,7 @@ function createWindow() {
     }
   });
 
-  ipcMain.handle('create-real-estate-agent', async (realEstateAgentData) => {
+  ipcMain.handle('create-real-estate-agent', async (event, realEstateAgentData) => {
     try {
       return createRealEstateAgent(realEstateAgentData);
     } catch (err) {
@@ -69,7 +69,7 @@ function createWindow() {
     }
   });
   
-  ipcMain.handle('get-real-estate-agent-by-name', async (name) => {
+  ipcMain.handle('get-real-estate-agent-by-name', async (event, name) => {
     try {
       return getRealEstateAgentByName(name);
     } catch (err) {

@@ -7,6 +7,6 @@ contextBridge.exposeInMainWorld('api', {
   createRealEstateAgent: (realEstateAgentData) => ipcRenderer.invoke('create-real-estate-agent', realEstateAgentData),
   getRealEstateAgent: () => ipcRenderer.invoke('get-real-estate-agent'),
   getRealEstateAgentByName: (name) => ipcRenderer.invoke('get-real-estate-agent-by-name', name),
-  updateRealState: (data) => ipcRenderer.invoke('update-real-estate-agent', data),
+  updateRealEstateAgent: (data) => ipcRenderer.invoke('update-real-estate-agent', data),
   deleteRealEstateAgent: (id) => ipcRenderer.invoke('delete-real-estate-agent', id),
 });

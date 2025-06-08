@@ -159,7 +159,7 @@ export default {
   
       try {
         if (this.corretor) {
-          const resultado = await window.api.updateRealState({
+          const resultado = await window.api.updateRealEstateAgent({
             id: this.corretor.id,
             creci: this.creci,
             name: this.name,
@@ -186,7 +186,7 @@ export default {
             return;
           }
   
-          const resultado = await window.api.createRealState({
+          const resultado = await window.api.createRealEstateAgent({
             creci: this.creci,
             name: this.name,
             email: this.email,

@@ -106,7 +106,7 @@ export default {
     },
     async loadCorretores() {
       try {
-        this.corretores = await window.api.getRealState();
+        this.corretores = await window.api.getRealEstateAgent();
         this.buscou = true;
       } catch (error) {
         console.error('Erro ao carregar corretores:', error);
@@ -121,9 +121,8 @@ export default {
         toast.error('Por favor, digite o nome do corretor para buscar.');
         return;
       }
-  
       try {
-        const results = await window.api.searchRealStateByName(this.searchQuery.trim());
+        const results = await window.api.getRealEstateAgentByName(this.searchQuery.trim());
         if (Array.isArray(results)) {
           this.corretores = results;
           this.buscou = true;
@@ -148,6 +147,23 @@ export default {
       this.corretorParaExcluir = corretorId;
       this.showDeleteModal = true;
     },
+    async confirmDelete() {
+      const toast = useToast();
+      try {
+        const resultado = await window.api.deleteRealEstateAgent(this.corretorParaExcluir);
+        if (resultado) {
+          toast.success('Corretor excluído com sucesso!');
+          this.showDeleteModal = false;
+          this.loadCorretores();
+        } else {
+          toast.error('Erro ao excluir corretor. Tente novamente.');
+        }
+      } catch (error) {
+        console.error('Erro ao excluir corretor:', error);
+        toast.error('Erro ao excluir corretor. Tente novamente.');
+      }
+      this.showDeleteModal = false;
+    }
   }
 };
 </script>

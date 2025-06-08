@@ -98,7 +98,7 @@ export default {
                     phone: this.phone,
                     birthdate: this.birthdate,
                     password: this.password,
-                    role: 'ADMIN',
+                    role: 'CLIENTE',
                 });
     
                 if (resultado) {

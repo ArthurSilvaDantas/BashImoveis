@@ -87,7 +87,7 @@ export const createUser = async (userData) => {
   return {
     id: info.lastInsertRowid,
     ...userData,
-    password: undefined, // never return password
+    password: undefined,
   };
 };
 
@@ -126,8 +126,8 @@ export const createRealEstateAgent = async (realEstateAgentData) => {
   try {
     insertCorretor.run(
       info.lastInsertRowid,
-      realStateData.creci,
-      realStateData.image_base64 || null
+      realEstateAgentData.creci,
+      realEstateAgentData.image_base64 || null
     );
     console.log('Corretor inserido com usuário_id:', info.lastInsertRowid);
   } catch (err) {
@@ -138,7 +138,7 @@ export const createRealEstateAgent = async (realEstateAgentData) => {
 
   return {
     id: info.lastInsertRowid,
-    ...realStateData,
+    ...realEstateAgentData,
     password: undefined
   };
 };
