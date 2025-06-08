@@ -1,12 +1,17 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { useUserStore } from '../store/userStore';
 
-const Home = () => import('../components/List/Home.vue');
-const CreateUser = () => import('../components/Create/CreateUser.vue');
-const ListRealStateAgent = () => import('../components/List/ListRealStateAgent.vue');
-const ListProperies = () => import('../components/List/ListProperties.vue');
+// General
+const Home = () => import('../components/Home.vue');
 const Questions = () => import('../components/Questions.vue');
 const Login = () => import('../components/Login.vue');
+// User
+const CreateUser = () => import('../components/Create/CreateUser.vue');
+// Real State Agent
+const ListRealStateAgent = () => import('../components/List/ListRealStateAgent.vue');
+// Property
+const ListProperties = () => import('../components/List/ListProperties.vue');
+const CreateProperty = () => import('../components/Create/CreateProperty.vue');
 
 const baseUrl = '/';
 
@@ -26,7 +31,12 @@ const router = createRouter({
     {
       path: '/list-properties',
       name: 'list-properties',
-      component: ListProperies,
+      component: ListProperties,
+    },
+    {
+      path: '/create-property',
+      name: 'create-property',
+      component: CreateProperty,
     },
     {
         path: '/list-real-state-agent',
@@ -57,11 +67,16 @@ router.beforeEach((to, from, next) => {
     return next('/');
   }
 
-  if(to.path === '/list-properties' && !userStore.logado && useUserStore.role !== 'ADMIN') {
+  if(to.path === '/list-properties' && userStore.role !== 'ADMIN') {
     return next('/login');
   }
 
-  if (to.path === '/create-real-stand-agent' && !userStore.logado && userStore.usuario.role !== 'ADMIN') {
+  if(to.path === '/create-property' && useUserStore.role === 'CLIENTE') {
+    return next('/login');
+  }
+
+  if (to.path === '/list-real-state-agent' && userStore.role !== 'ADMIN') {
+    console.log('User is not an ADMIN');
     return next('/login');
   }
 
