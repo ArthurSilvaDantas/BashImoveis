@@ -1,8 +1,8 @@
 import { app, BrowserWindow } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { sincronizar, reconectar } from './database/sync.js';
-import { verifyLogin, checkEmailExists, createUser, createRealEstateAgent, getRealEstateAgent, getRealEstateAgentByName, updateRealEstateAgent, deleteRealEstateAgent} from './database/db.js';
+import { sincronizar, reconectar, isConnected } from './database/sync.js';
+import { verifyLogin, checkEmailExists, createUser, createRealEstateAgent, getRealEstateAgent, getRealEstateAgentByName, updateRealEstateAgent, deleteRealEstateAgent } from './database/db.js';
 import { ipcMain } from 'electron';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -24,7 +24,7 @@ function createWindow() {
     win.loadURL(process.env.VITE_DEV_SERVER_URL);
   }
 
-  ipcMain.handle('verify-login', async (email, password) => {
+  ipcMain.handle('verify-login', async (event, email, password) => {
     try {
       return verifyLogin(email, password);
     } catch (err) {
@@ -33,7 +33,7 @@ function createWindow() {
     }
   });
 
-  ipcMain.handle('check-email-exists', async (email) => {
+  ipcMain.handle('check-email-exists', async (event, email) => {
     try {
       return checkEmailExists(email);
     } catch (err) {
@@ -41,7 +41,7 @@ function createWindow() {
       return false;
     }
   });
-  
+
   ipcMain.handle('create-user', async (event, userData) => {
     try {
       return createUser(userData);
@@ -68,7 +68,7 @@ function createWindow() {
       return [];
     }
   });
-  
+
   ipcMain.handle('get-real-estate-agent-by-name', async (event, name) => {
     try {
       return getRealEstateAgentByName(name);
@@ -99,8 +99,19 @@ function createWindow() {
 
 app.whenReady().then(() => {
   setInterval(async () => {
-    await reconectar();
-    await sincronizar();
+    try {
+      if (!isConnected()) {
+        console.log("Tentando reconectar ao banco de dados...");
+        await reconectar();
+      }
+
+      if (isConnected()) {
+        await sincronizar();
+      }
+
+    } catch (err) {
+      console.error("Erro na reconexão ou sincronização:", err);
+    }
   }, 2000);
 
   createWindow();
@@ -113,7 +124,7 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin'){
+  if (process.platform !== 'darwin') {
     app.quit();
   }
 });

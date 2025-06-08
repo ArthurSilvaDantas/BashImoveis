@@ -44,172 +44,129 @@ const criarClient = () => {
   return new Client({
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false },
+    connectionTimeoutMillis: 10000, 
   });
 };
 
-const conectar = async () => {
-  try {
-    client = criarClient();
-    await client.connect();
-    console.log('Conectado ao banco de dados remoto');
-    connected = true;
-  } catch (err) {
-    console.error('Erro ao conectar ao banco de dados remoto', err.message);
-    connected = false;
+const desconectar = async () => {
+  if (client) {
+    try {
+      await client.end();
+      console.log('Cliente PostgreSQL desconectado com sucesso.');
+    } catch (err) {
+      console.error('Erro ao finalizar a conexão com o cliente PostgreSQL:', err.message);
+    } finally {
+      client = null;
+      connected = false;
+    }
   }
 };
 
-await conectar();
+const conectar = async () => {
+  if (connected) {
+    return;
+  }
+
+  await desconectar();
+
+  try {
+    console.log("Tentando conectar ao banco de dados remoto...");
+    client = criarClient();
+
+    client.on('error', async (err) => {
+      console.error('Erro inesperado na conexão com o banco de dados remoto:', err.message);
+      await desconectar();
+    });
+
+    await client.connect();
+    console.log('Conectado com sucesso ao banco de dados remoto!');
+    connected = true;
+
+  } catch (err) {
+    console.error('Falha ao conectar ao banco de dados remoto:', err.message);
+    await desconectar();
+  }
+};
+
 
 const formatUpdatedAt = (updatedAt) => {
-  const date = new Date(updatedAt);
-  return date.toISOString().split('.')[0].replace('T', ' ');
+  if (!updatedAt) return null;
+  return new Date(updatedAt).toISOString();
 };
 
 const formatBirthdate = (birthdate) => {
-  if (birthdate && !isNaN(Date.parse(birthdate))) {
-    const date = new Date(birthdate);
-    return date.toISOString().split('T')[0];
-  }
-  return birthdate;
+  if (!birthdate) return null;
+  return new Date(birthdate).toISOString().split('T')[0];
 };
 
 export const sincronizar = async () => {
-  if (!connected) {
-    console.log("Sincronização ignorada: sem conexão com o banco remoto");
+  if (!isConnected()) {
+    console.log("Sincronização ignorada: sem conexão com o banco remoto.");
     return;
   }
 
   try {
     const pendentes = db.prepare("SELECT * FROM usuario WHERE status_sync = 'pendente'").all();
+    if(pendentes.length === 0) {
+        return;
+    }
+
+    console.log(`Iniciando sincronização de ${pendentes.length} registros...`);
 
     for (const usuario of pendentes) {
-      try {
-        const formattedUpdatedAt = formatUpdatedAt(usuario.updated_at);
-        const formattedBirthdate = formatBirthdate(usuario.birthdate);
+      const formattedUpdatedAt = formatUpdatedAt(usuario.updated_at);
+      const formattedBirthdate = formatBirthdate(usuario.birthdate);
 
-        if (usuario.deleted === 1) {
-          await client.query(`DELETE FROM usuario WHERE id = $1`, [usuario.id]);
-          db.prepare(`DELETE FROM usuario WHERE id = ?`).run(usuario.id);
-        } else {
-          await client.query(`
-            INSERT INTO usuario (id, name, email, phone, birthdate, password, role, updated_at, status_sync, deleted)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'sincronizado', 0)
-            ON CONFLICT (id) DO UPDATE SET
-              name = $2,
-              email = $3,
-              phone = $4,
-              birthdate = $5,
-              password = $6,
-              role = $7,
-              updated_at = $8,
-              status_sync = 'sincronizado',
-              deleted = 0
-          `, [
-            usuario.id,
-            usuario.name,
-            usuario.email,
-            usuario.phone,
-            formattedBirthdate,
-            usuario.password,
-            usuario.role,
-            formattedUpdatedAt,
-          ]);
-
-          db.prepare(`UPDATE usuario SET status_sync = 'sincronizado' WHERE id = ?`).run(usuario.id);
-        }
+      if (usuario.deleted === 1) {
+        await client.query(`DELETE FROM corretor WHERE usuario_id = $1`, [usuario.id]);
+        await client.query(`DELETE FROM usuario WHERE id = $1`, [usuario.id]);
+        db.prepare(`DELETE FROM usuario WHERE id = ?`).run(usuario.id);
+      } else {
+        await client.query(`
+          INSERT INTO usuario (id, name, email, phone, birthdate, password, role, updated_at, status_sync, deleted)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'sincronizado', 0)
+          ON CONFLICT (id) DO UPDATE SET
+            name = EXCLUDED.name,
+            email = EXCLUDED.email,
+            phone = EXCLUDED.phone,
+            birthdate = EXCLUDED.birthdate,
+            password = EXCLUDED.password,
+            role = EXCLUDED.role,
+            updated_at = EXCLUDED.updated_at,
+            status_sync = 'sincronizado',
+            deleted = 0
+        `, [
+          usuario.id,
+          usuario.name,
+          usuario.email,
+          usuario.phone,
+          formattedBirthdate,
+          usuario.password,
+          usuario.role,
+          formattedUpdatedAt,
+        ]);
 
         if (usuario.role === 'CORRETOR') {
           const corretor = db.prepare("SELECT * FROM corretor WHERE usuario_id = ?").get(usuario.id);
-
           if (corretor) {
             await client.query(`
               INSERT INTO corretor (usuario_id, creci, image_base64)
               VALUES ($1, $2, $3)
               ON CONFLICT (usuario_id) DO UPDATE SET
-                creci = $2,
-                image_base64 = $3
+                creci = EXCLUDED.creci,
+                image_base64 = EXCLUDED.image_base64
             `, [usuario.id, corretor.creci, corretor.image_base64]);
           }
         }
-      } catch (e) {
-        console.error(`Erro ao sincronizar usuário ID ${usuario.id}:`, e.message);
+        
+        db.prepare(`UPDATE usuario SET status_sync = 'sincronizado' WHERE id = ?`).run(usuario.id);
       }
     }
 
-    const res = await client.query(`SELECT * FROM usuario`);
-    const remotos = res.rows;
-
-    for (const remoto of remotos) {
-      const local = db.prepare(`SELECT * FROM usuario WHERE id = ?`).get(remoto.id);
-
-      if (!local) {
-        if (remoto.deleted === 0) {
-          const formattedUpdatedAt = formatUpdatedAt(remoto.updated_at);
-          const formattedBirthdate = formatBirthdate(remoto.birthdate);
-
-          db.prepare(`
-            INSERT INTO usuario (id, name, email, phone, birthdate, password, role, updated_at, status_sync, deleted)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'sincronizado', 0)
-          `).run(
-            remoto.id,
-            remoto.name,
-            remoto.email,
-            remoto.phone,
-            formattedBirthdate,
-            remoto.password,
-            remoto.role,
-            formattedUpdatedAt
-          );
-        }
-      } else {
-        const remotoTime = new Date(remoto.updated_at).getTime();
-        const localTime = new Date(local.updated_at).getTime();
-
-        if (remotoTime > localTime) {
-          if (remoto.deleted === 1) {
-            db.prepare(`DELETE FROM usuario WHERE id = ?`).run(remoto.id);
-          } else {
-            const formattedUpdatedAt = formatUpdatedAt(remoto.updated_at);
-            const formattedBirthdate = formatBirthdate(remoto.birthdate);
-
-            db.prepare(`
-              UPDATE usuario
-              SET name = ?, email = ?, phone = ?, birthdate = ?, password = ?, role = ?, updated_at = ?, status_sync = 'sincronizado', deleted = 0
-              WHERE id = ?
-            `).run(
-              remoto.name,
-              remoto.email,
-              remoto.phone,
-              formattedBirthdate,
-              remoto.password,
-              remoto.role,
-              formattedUpdatedAt,
-              remoto.id
-            );
-          }
-        }
-      }
-
-      if (remoto.role === 'CORRETOR') {
-        const resCreci = await client.query(`SELECT * FROM corretor WHERE usuario_id = $1`, [remoto.id]);
-        const corretorRemoto = resCreci.rows[0];
-        const corretorLocal = db.prepare(`SELECT * FROM corretor WHERE usuario_id = ?`).get(remoto.id);
-
-        if (!corretorLocal && corretorRemoto) {
-          db.prepare(`INSERT INTO corretor (usuario_id, creci, image_base64) VALUES (?, ?, ?)`)
-            .run(remoto.id, corretorRemoto.creci, corretorRemoto.image_base64);
-        } else if (corretorRemoto && (corretorLocal.creci !== corretorRemoto.creci || corretorLocal.image_base64 !== corretorRemoto.image_base64)) {
-          db.prepare(`UPDATE corretor SET creci = ?, image_base64 = ? WHERE usuario_id = ?`)
-            .run(corretorRemoto.creci, corretorRemoto.image_base64, remoto.id);
-        }
-      }
-    }
-
-    console.log('Sincronização de usuários e corretores concluída');
+    console.log('Sincronização concluída com sucesso!');
   } catch (e) {
-    console.error('Erro na sincronização geral:', e.message);
-    connected = false;
+    console.error('Erro durante a sincronização:', e.message);
+    await desconectar();
   }
 };
 
@@ -218,3 +175,5 @@ export const reconectar = async () => {
     await conectar();
   }
 };
+
+export const isConnected = () => connected;
