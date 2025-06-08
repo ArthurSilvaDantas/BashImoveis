@@ -6,7 +6,6 @@
     <nav class="navbar" :class="{ 'sticky': isSticky }">
       <ul class="nav-list" v-if="!isAdmin && !isRealStateAgent">
         <li><a href="/">Início</a></li>
-        <li><a href="/negotiate-property">Negocie seu Imóvel</a></li>
         <li><a href="/favorites">Imóveis Favoritos</a></li>
         <li><a href="/questions">Perguntas Frequentes</a></li>
         <li v-if="!isLoggedIn"><a href="/login">Entrar</a></li>
@@ -17,7 +16,6 @@
 
       <ul class="nav-list" v-if="isAdmin">
         <li><a href="/">Início</a></li>
-        <li><a href="/negotiate">Negociações</a></li>
         <li><a href="/list-properties">Imóveis</a></li>
         <li><a href="/list-real-state-agent">Corretores</a></li>
         <li v-if="!isLoggedIn"><a href="/login">Entrar</a></li>
@@ -28,7 +26,6 @@
 
       <ul class="nav-list" v-else-if="isRealStateAgent">
         <li><a href="/">Início</a></li>
-        <li><a href="/negotiate">Negociações</a></li>
         <li><a href="/list-properties">Imóveis</a></li>
         <li v-if="!isLoggedIn"><a href="/login">Entrar</a></li>
         <li v-else>

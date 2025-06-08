@@ -55,8 +55,8 @@ db.prepare(`
     banheiros INTEGER,
     vagas_garagem INTEGER,
     corretor_id INTEGER,
-    criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
-    atualizado_em DATETIME,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME,
     FOREIGN KEY (corretor_id) REFERENCES corretor(usuario_id) ON DELETE SET NULL
   );
 `).run();
@@ -68,7 +68,7 @@ db.prepare(`
     image_base64 TEXT NOT NULL,
     legenda TEXT,
     ordem INTEGER,
-    criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (imovel_id) REFERENCES imovel(id) ON DELETE CASCADE
   );
 `).run();

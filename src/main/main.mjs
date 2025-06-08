@@ -2,7 +2,7 @@ import { app, BrowserWindow } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { sincronizar, reconectar, isConnected } from './database/sync.js';
-import { verifyLogin, checkEmailExists, createUser, createRealEstateAgent, getRealEstateAgent, getRealEstateAgentByName, updateRealEstateAgent, deleteRealEstateAgent } from './database/db.js';
+import { verifyLogin, checkEmailExists, createUser, createRealEstateAgent, getRealEstateAgent, getRealEstateAgentByName, updateRealEstateAgent, deleteRealEstateAgent, createProperty, getAllProperties} from './database/db.js';
 import { ipcMain } from 'electron';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -93,6 +93,24 @@ function createWindow() {
     } catch (err) {
       console.error('Erro no ipcMain ao excluir corretor:', err);
       return { success: false, message: 'Erro interno ao excluir corretor.' };
+    }
+  });
+
+  ipcMain.handle('create-property', async (event, propertyData) => {
+    try {
+      return createProperty(propertyData);
+    } catch (err) {
+      console.error('Erro ao criar propriedade:', err);
+      return null;
+    }
+  });
+
+  ipcMain.handle('get-all-properties', async () => {
+    try {
+      return getAllProperties();
+    } catch (err) {
+      console.error('Erro ao obter todas as propriedades:', err);
+      return [];
     }
   });
 }

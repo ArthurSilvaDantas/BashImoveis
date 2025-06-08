@@ -127,4 +127,3 @@ export default {
 <style scoped>
 @import '../../styles/CreateUser.css';
 </style>
-  

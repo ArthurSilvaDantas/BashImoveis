@@ -51,8 +51,8 @@ db.prepare(`
     banheiros INTEGER,
     vagas_garagem INTEGER,
     corretor_id INTEGER,
-    criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
-    atualizado_em DATETIME,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME,
     FOREIGN KEY (corretor_id) REFERENCES corretor(usuario_id) ON DELETE SET NULL
   );
 `).run();
@@ -64,7 +64,7 @@ db.prepare(`
     image_base64 TEXT NOT NULL,
     legenda TEXT,
     ordem INTEGER,
-    criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (imovel_id) REFERENCES imovel(id) ON DELETE CASCADE
   );
 `).run();
@@ -286,64 +286,96 @@ export const deleteRealEstateAgent = (id) => {
   }
 };
 
-// Property
 export const createProperty = (propertyData) => {
   const now = new Date().toISOString().split('.')[0].replace('T', ' ');
 
   const stmt = db.prepare(`
     INSERT INTO imovel (
-      titulo, descricao, endereco, cidade, estado, cep, preco,
+      titulo, descricao, endereco, cidade, bairro, estado, cep, preco,
       tipo, status, area_m2, quartos, banheiros, vagas_garagem,
-      corretor_id, atualizado_em
+      corretor_id, updated_at
     )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
-  const info = stmt.run(
-    propertyData.titulo,
-    propertyData.descricao,
-    propertyData.endereco,
-    propertyData.cidade,
-    propertyData.estado,
-    propertyData.cep,
-    propertyData.preco,
-    propertyData.tipo,
-    propertyData.status || 'DISPONIVEL',
-    propertyData.area_m2,
-    propertyData.quartos,
-    propertyData.banheiros,
-    propertyData.vagas_garagem,
-    propertyData.corretor_id,
-    now
-  );
+  try {
+    const info = stmt.run(
+      propertyData.titulo,
+      propertyData.descricao,
+      propertyData.endereco,
+      propertyData.cidade,
+      propertyData.bairro,
+      propertyData.estado,
+      propertyData.cep,
+      propertyData.preco,
+      propertyData.tipo,
+      propertyData.status,
+      propertyData.area_m2,
+      propertyData.quartos,
+      propertyData.banheiros,
+      propertyData.vagas_garagem,
+      propertyData.corretor_id,
+      now
+    );
+    console.log('Imóvel inserido com sucesso! ID:', info.lastInsertRowid);
 
-  return {
-    id: info.lastInsertRowid,
-    ...propertyData
-  };
+    if (propertyData.images_base64 && propertyData.images_base64.length > 0) {
+      const insertImageStmt = db.prepare(`
+        INSERT INTO imovel_imagem (imovel_id, image_base64)
+        VALUES (?, ?)
+      `);
+      propertyData.images_base64.forEach(base64Image => {
+        const cleanBase64 = base64Image.includes(',') ? base64Image.split(',')[1] : base64Image;
+        insertImageStmt.run(info.lastInsertRowid, cleanBase64);
+      });
+      console.log('Imagens inseridas com sucesso.');
+    }
+
+    return {
+      id: info.lastInsertRowid,
+      ...propertyData
+    };
+  } catch (err) {
+    console.error('Erro ao inserir imóvel no banco de dados:', err.message);
+    throw err;
+  }
 };
 
 export const getAllProperties = () => {
-  const stmt = db.prepare(`
-    SELECT i.*, u.name AS corretor_nome
-    FROM imovel i
-    LEFT JOIN corretor c ON i.corretor_id = c.usuario_id
-    LEFT JOIN usuario u ON c.usuario_id = u.id
-    ORDER BY i.criado_em DESC
-  `);
-
-  return stmt.all();
+  try {
+    const stmt = db.prepare(`
+      SELECT i.*, u.name AS corretor_nome
+      FROM imovel i
+      LEFT JOIN corretor c ON i.corretor_id = c.usuario_id
+      LEFT JOIN usuario u ON c.usuario_id = u.id
+      ORDER BY i.created_at DESC
+    `);
+    
+    const results = stmt.all();
+    return results || [];
+  } catch (err) {
+    console.error("Erro ao buscar imóveis", err);
+    return [];
+  }
 };
 
 export const getPropertiesByCorretorId = (corretorId) => {
-  const stmt = db.prepare(`
-    SELECT i.*, u.name AS corretor_nome
-    FROM imovel i
-    LEFT JOIN corretor c ON i.corretor_id = c.usuario_id
-    LEFT JOIN usuario u ON c.usuario_id = u.id
-    WHERE i.corretor_id = ?
-    ORDER BY i.criado_em DESC
-  `);
-
-  return stmt.all(corretorId);
+  try {
+    const stmt = db.prepare(`
+      SELECT i.*, u.name AS corretor_nome
+      FROM imovel i
+      LEFT JOIN corretor c ON i.corretor_id = c.usuario_id
+      LEFT JOIN usuario u ON c.usuario_id = u.id
+      WHERE i.corretor_id = ?
+      ORDER BY i.created_at DESC
+    `);
+    
+    const results = stmt.all(corretorId);
+    return result || [];
+  } catch (err) {
+    console.error("Erro ao buscar imóveis associado ao corretor", err);
+    return [];
+  }
 };
+
+// getByFilters
