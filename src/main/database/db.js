@@ -229,6 +229,31 @@ export const getRealEstateAgentByName = (name) => {
   }
 };
 
+export const getRealEstateAgentById = (id) => {
+  try {
+    const stmt = db.prepare(`
+      SELECT
+        u.id,
+        u.name,
+        u.email,
+        u.phone,
+        u.birthdate,
+        c.creci,
+        c.image_base64
+      FROM usuario u
+      INNER JOIN corretor c ON u.id = c.usuario_id
+      WHERE u.id = ? AND u.deleted = 0 AND u.role = 'CORRETOR'
+      ORDER BY u.name ASC
+    `);
+    
+    const result = stmt.get(id);
+    return result || null;
+  } catch (err) {
+    console.error('Erro ao buscar corretor por ID:', err);
+    return null;
+  }
+};
+
 export const updateRealEstateAgent = async (data) => {
   const now = new Date().toISOString().split('.')[0].replace('T', ' ');
 
@@ -286,6 +311,7 @@ export const deleteRealEstateAgent = (id) => {
   }
 };
 
+// Property
 export const createProperty = (propertyData) => {
   const now = new Date().toISOString().split('.')[0].replace('T', ' ');
 
@@ -344,15 +370,58 @@ export const createProperty = (propertyData) => {
 export const getAllProperties = () => {
   try {
     const stmt = db.prepare(`
-      SELECT i.*, u.name AS corretor_nome
+      SELECT 
+        i.*, 
+        u.name AS corretor_nome, 
+        ii.image_base64
       FROM imovel i
       LEFT JOIN corretor c ON i.corretor_id = c.usuario_id
       LEFT JOIN usuario u ON c.usuario_id = u.id
+      LEFT JOIN imovel_imagem ii ON i.id = ii.imovel_id
       ORDER BY i.created_at DESC
     `);
-    
+
     const results = stmt.all();
-    return results || [];
+
+    const propertiesWithImages = results.reduce((acc, row) => {
+      let property = acc.find(p => p.id === row.id);
+
+      if (property) {
+        if (row.image_base64) {
+          property.imagens.push({ image_base64: row.image_base64 });
+        }
+      } else {
+        property = {
+          id: row.id,
+          titulo: row.titulo,
+          descricao: row.descricao,
+          endereco: row.endereco,
+          bairro: row.bairro,
+          cidade: row.cidade,
+          estado: row.estado,
+          cep: row.cep,
+          preco: row.preco,
+          tipo: row.tipo,
+          status: row.status,
+          area_m2: row.area_m2,
+          quartos: row.quartos,
+          banheiros: row.banheiros,
+          vagas_garagem: row.vagas_garagem,
+          corretor_id: row.corretor_id,
+          corretor_nome: row.corretor_nome,
+          created_at: row.created_at,
+          updated_at: row.updated_at,
+          imagens: row.image_base64 ? [{ image_base64: row.image_base64 }] : []
+        };
+        acc.push(property);
+      }
+
+      console.log(`Imóvel ID: ${row.id}, Título: ${row.titulo}, Imagens: ${property.imagens.length}`);
+
+      return acc;
+    }, []);
+
+    return propertiesWithImages || [];
   } catch (err) {
     console.error("Erro ao buscar imóveis", err);
     return [];
@@ -371,11 +440,119 @@ export const getPropertiesByCorretorId = (corretorId) => {
     `);
     
     const results = stmt.all(corretorId);
-    return result || [];
+    return results || [];
   } catch (err) {
     console.error("Erro ao buscar imóveis associado ao corretor", err);
     return [];
   }
 };
 
-// getByFilters
+export const getFilteredProperties = (filters) => {
+  try {
+    let query = `
+      SELECT
+        i.*,
+        u.name AS corretor_nome,
+        ii.image_base64
+      FROM imovel i
+      LEFT JOIN corretor c ON i.corretor_id = c.usuario_id
+      LEFT JOIN usuario u ON c.usuario_id = u.id
+      LEFT JOIN imovel_imagem ii ON i.id = ii.imovel_id
+      WHERE 1=1
+    `;
+    const params = [];
+
+    if (filters.titulo) {
+      query += ` AND (LOWER(i.titulo) LIKE LOWER(?) OR LOWER(i.reference) LIKE LOWER(?))`;
+      params.push(`%${filters.titulo}%`, `%${filters.titulo}%`);
+    }
+    if (filters.bairro) {
+      query += ` AND i.bairro = ?`;
+      params.push(filters.bairro);
+    }
+    if (filters.precoMin) {
+      query += ` AND i.preco >= ?`;
+      params.push(filters.precoMin);
+    }
+    if (filters.precoMax) {
+      query += ` AND i.preco <= ?`;
+      params.push(filters.precoMax);
+    }
+    if (filters.tipo) {
+      query += ` AND i.tipo = ?`;
+      params.push(filters.tipo);
+    }
+    if (filters.status) {
+      query += ` AND i.status = ?`;
+      params.push(filters.status);
+    }
+    if (filters.quartos) {
+      query += ` AND i.quartos >= ?`;
+      params.push(filters.quartos);
+    }
+    if (filters.banheiros) {
+      query += ` AND i.banheiros >= ?`;
+      params.push(filters.banheiros);
+    }
+    if (filters.vagas_garagem) {
+      query += ` AND i.vagas_garagem >= ?`;
+      params.push(filters.vagas_garagem);
+    }
+    if (filters.corretor_id) {
+      query += ` AND i.corretor_id = ?`;
+      params.push(filters.corretor_id);
+    }
+    if (filters.userId && filters.userRole === 'CORRETOR') {
+      query += ` AND i.corretor_id = ?`;
+      params.push(filters.userId);
+    }
+    if (filters.userRole !== 'ADMIN' && filters.userRole !== 'CORRETOR') {
+        query += ` AND i.status = 'DISPONIVEL'`;
+    }
+
+    query += ` ORDER BY i.created_at DESC`;
+
+    const stmt = db.prepare(query);
+    const results = stmt.all(...params);
+
+    const propertiesWithImages = results.reduce((acc, row) => {
+      let property = acc.find(p => p.id === row.id);
+
+      if (property) {
+        if (row.image_base64) {
+          property.imagens.push({ image_base64: row.image_base64 });
+        }
+      } else {
+        property = {
+          id: row.id,
+          titulo: row.titulo,
+          descricao: row.descricao,
+          endereco: row.endereco,
+          bairro: row.bairro,
+          cidade: row.cidade,
+          estado: row.estado,
+          cep: row.cep,
+          preco: row.preco,
+          tipo: row.tipo,
+          status: row.status,
+          area_m2: row.area_m2,
+          quartos: row.quartos,
+          banheiros: row.banheiros,
+          vagas_garagem: row.vagas_garagem,
+          corretor_id: row.corretor_id,
+          corretor_nome: row.corretor_nome,
+          created_at: row.created_at,
+          updated_at: row.updated_at,
+          imagens: row.image_base64 ? [{ image_base64: row.image_base64 }] : []
+        };
+        acc.push(property);
+      }
+      return acc;
+    }, []);
+
+    return propertiesWithImages;
+  } catch (err) {
+    console.error("Erro ao buscar imóveis com filtros", err);
+    return [];
+  }
+};

@@ -2,7 +2,7 @@ import { app, BrowserWindow } from 'electron';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { sincronizar, reconectar, isConnected } from './database/sync.js';
-import { verifyLogin, checkEmailExists, createUser, createRealEstateAgent, getRealEstateAgent, getRealEstateAgentByName, updateRealEstateAgent, deleteRealEstateAgent, createProperty, getAllProperties} from './database/db.js';
+import { verifyLogin, checkEmailExists, createUser, createRealEstateAgent, getRealEstateAgent, getFilteredProperties, getRealEstateAgentByName, getRealEstateAgentById, updateRealEstateAgent, deleteRealEstateAgent, createProperty, getAllProperties} from './database/db.js';
 import { ipcMain } from 'electron';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -78,6 +78,16 @@ function createWindow() {
     }
   });
 
+  ipcMain.handle('get-real-estate-agent-by-id', async (event, id) => {
+    try {
+      return getRealEstateAgentById(id);
+    }
+    catch (err) {
+      console.error('Erro ao obter corretor por ID:', err);
+      return null;
+    }
+  });
+
   ipcMain.handle('update-real-estate-agent', async (event, data) => {
     try {
       return updateRealEstateAgent(data);
@@ -113,6 +123,16 @@ function createWindow() {
       return [];
     }
   });
+
+  ipcMain.handle('get-filtered-properties', async (event, filters) => {
+    try {
+      return getFilteredProperties(filters);
+    } catch (error) {
+      console.error('Error fetching filtered properties:', error);
+      throw error;
+    }
+  });
+
 }
 
 app.whenReady().then(() => {
