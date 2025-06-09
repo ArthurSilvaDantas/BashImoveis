@@ -1,0 +1,143 @@
+.hero-carousel-container {
+  width: 100%; /* Full width */
+  position: relative;
+  overflow: hidden;
+  /* Adjust height to match your desired banner height. */
+  /* This is crucial for the "hero" look. */
+  height: 300px; /* Example height. Adjust as needed. */
+  /* Use a min-height for responsiveness if content is dynamic */
+  min-height: 250px; /* Minimum height on smaller screens */
+  background-color: #333; /* Fallback background */
+}
+
+.hero-carousel-wrapper {
+  width: 100%;
+  height: 100%;
+  position: relative; /* For absolute positioning of image and buttons */
+}
+
+.hero-carousel-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Ensures the image covers the area without distortion */
+  object-position: center; /* Centers the image within its container */
+  display: block;
+}
+
+.hero-carousel-button {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: rgba(0, 0, 0, 0.4); /* Slightly transparent background */
+  color: white;
+  border: none;
+  padding: 10px 18px; /* Larger padding for better click area */
+  cursor: pointer;
+  font-size: 30px; /* Larger arrows */
+  line-height: 1;
+  border-radius: 4px; /* Slightly rounded corners for buttons */
+  transition: background-color 0.3s ease;
+  z-index: 20; /* Ensure buttons are above the image and overlay */
+  opacity: 0; /* Hidden by default */
+}
+
+.hero-carousel-container:hover .hero-carousel-button {
+  opacity: 1; /* Show on container hover */
+}
+
+.hero-carousel-button:hover {
+  background-color: rgba(0, 0, 0, 0.6);
+}
+
+.prev-button {
+  left: 20px; /* Distance from left edge */
+}
+
+.next-button {
+  right: 20px; /* Distance from right edge */
+}
+
+.hero-carousel-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.4),
+    rgba(0, 0, 0, 0)
+  ); /* Subtle gradient from bottom */
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end; /* Align content to the bottom */
+  align-items: center;
+  color: white;
+  padding-bottom: 30px; /* Space from the bottom */
+  z-index: 10;
+}
+
+.overlay-title {
+  font-size: 2.5em;
+  margin-bottom: 10px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+}
+
+.overlay-subtitle {
+  font-size: 1.2em;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
+}
+
+.carousel-indicators {
+  position: absolute;
+  bottom: 20px;
+  display: flex;
+  gap: 10px;
+}
+
+.indicator-dot {
+  width: 10px;
+  height: 10px;
+  background-color: rgba(255, 255, 255, 0.5);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.3s;
+}
+
+.indicator-dot.active {
+  background-color: white;
+  transform: scale(1.2);
+}
+
+.no-images-message {
+  text-align: center;
+  padding: 50px;
+  color: #666;
+  font-size: 1.2em;
+  background-color: #f8f8f8;
+}
+
+/* Optional: Media queries for responsiveness */
+@media (max-width: 768px) {
+  .hero-carousel-container {
+    height: 300px; /* Shorter height on smaller screens */
+  }
+  .hero-carousel-button {
+    font-size: 24px;
+    padding: 8px 12px;
+  }
+  .overlay-title {
+    font-size: 1.8em;
+  }
+  .overlay-subtitle {
+    font-size: 1em;
+  }
+}
+@media (max-width: 480px) {
+  .hero-carousel-container {
+    height: 200px;
+  }
+  .hero-carousel-button {
+    opacity: 1; /* Always show buttons on very small screens */
+  }
+}
