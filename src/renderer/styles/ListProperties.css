@@ -1,3 +1,8 @@
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
 .actions-bar {
   display: flex;
   justify-content: space-between;
@@ -119,4 +124,255 @@ select.filter-input {
   .action-button {
     justify-content: center;
   }
+}
+
+.properties-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+  gap: 1.25rem;
+  padding: 1.5rem;
+}
+
+.no-results {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 3rem;
+  color: #6c757d;
+  font-size: 1.1rem;
+}
+
+.property-card {
+  display: flex;
+  height: 150px;
+  background-color: #fff;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+}
+
+.property-card:hover {
+  border-color: #007bff;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.property-image-wrapper {
+  flex-shrink: 0;
+  width: 170px;
+  position: relative;
+}
+
+.property-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.property-status-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 500;
+  color: white;
+  text-transform: uppercase;
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+.disponivel {
+  background-color: #28a745;
+}
+
+.vendido {
+  background-color: #dc3545;
+}
+
+.alugado {
+  background-color: #ffc107;
+  color: #333;
+}
+
+.property-content {
+  flex-grow: 1;
+  padding: 0.8rem 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.property-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #212529;
+  margin: 0 0 0.25rem 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.property-location {
+  font-size: 0.8rem;
+  color: #6c757d;
+  margin: 0 0 0.5rem 0;
+}
+
+.property-summary-details {
+  display: flex;
+  align-items: center;
+  font-size: 0.85rem;
+  color: #495057;
+}
+.separator {
+  margin: 0 0.5rem;
+  color: #ced4da;
+}
+
+.property-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.property-price {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #343a40;
+}
+
+.favorite-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-size: 1.25rem;
+  color: #adb5bd;
+  transition: color 0.2s, transform 0.2s;
+}
+
+.favorite-button:hover {
+  color: #ff4d6d;
+  transform: scale(1.15);
+}
+
+@media (max-width: 768px) {
+  .properties-grid {
+    grid-template-columns: 1fr;
+    padding: 1rem;
+    gap: 1rem;
+  }
+  .property-card {
+    height: 140px;
+  }
+  .property-image-wrapper {
+    width: 140px;
+  }
+}
+
+.property-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.property-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.property-actions .action-button {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 5px;
+  font-size: 1.25rem;
+  line-height: 1;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.property-actions .action-button:hover {
+  background-color: #f0f0f0;
+}
+
+.delete-button:hover {
+  color: #c53030;
+  background-color: #fed7d7;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+}
+
+.modal-content h3 {
+  margin-top: 0;
+  color: #333;
+}
+
+.modal-content p {
+  margin-bottom: 1.5rem;
+  color: #555;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.modal-actions button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
+}
+
+.cancel-button {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+.cancel-button:hover {
+  background-color: #d0d0d0;
+}
+
+.confirm-delete-button {
+  background-color: #e53e3e;
+  color: white;
+}
+
+.confirm-delete-button:hover {
+  background-color: #c53030;
+}
+
+.modal-fade-enter-active,
+.modal-fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+.modal-fade-enter-from,
+.modal-fade-leave-to {
+  opacity: 0;
 }

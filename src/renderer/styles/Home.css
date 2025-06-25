@@ -141,3 +141,23 @@
     opacity: 1; /* Always show buttons on very small screens */
   }
 }
+
+.search-button {
+  background-color: #e8f4ff;
+  color: #007bff;
+}
+
+.search-button:hover {
+  background-color: #d0eaff;
+  transform: translateY(-1px);
+}
+
+.reset-button {
+  background-color: #ffe8e8;
+  color: #d60000;
+}
+
+.reset-button:hover {
+  background-color: #ffcccc;
+  transform: translateY(-1px);
+}
